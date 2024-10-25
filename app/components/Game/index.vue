@@ -19,6 +19,9 @@ function endGame() {
 function showInfo() {
   window.alert(`Du bist ${currentPlayer.value?.role}. Es gibt ${players.value?.filter(el => el.role === 'Spion').length} Spione.`)
 }
+
+const resistanceWon = computed(() => game?.value.mission_history.filter(el => el).length >= 3)
+const spiesWon = computed(() => game?.value.mission_history.filter(el => !el).length >= 3 || game?.value?.vote_repeat >= 5)
 </script>
 
 <template>
@@ -29,12 +32,21 @@ function showInfo() {
     <div class="fixed flex items-center justify-center top-0 right-0 w-12 h-12 cursor-pointer transition">
       <Icon name="streamline:information-circle-solid" size="1.75rem" @click="showInfo" />
     </div>
-    <GameReveal v-if="game.state === 'Reveal'" />
-    <div v-if="game?.state === 'Vote'">
-      <GameVoteLeader v-if="!game.leader_accepted" />
-      <GameVoteSelect v-else-if="!game.leader_proposed_team" />
-      <GameVote v-else-if="game.team_accepted === null" />
-      <GameVoteResults v-else />
+    <div v-if="resistanceWon || spiesWon">
+      <GameEndscreen :winners="resistanceWon ? 'Resistance' : 'Spies'" />
+    </div>
+    <div v-else>
+      <GameReveal v-if="game.state === 'Reveal'" />
+      <div v-if="game?.state === 'Vote'">
+        <GameVoteLeader v-if="!game.leader_accepted" />
+        <GameVoteSelect v-else-if="!game.leader_proposed_team" />
+        <GameVote v-else-if="game.team_accepted === null" />
+        <GameVoteResults v-else />
+      </div>
+      <div v-if="game.state === 'Mission'">
+        <GameMission v-if="players.filter(p => p.in_team && p.voted).length !== players.filter(p => p.in_team).length" />
+        <GameMissionResults v-else />
+      </div>
     </div>
   </div>
 </template>

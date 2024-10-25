@@ -22,54 +22,64 @@ function replaceLastComma(str: string) {
 const teamNames = players.value.filter(player => player.in_team).map(player => player.name)
 const teamString = replaceLastComma(teamNames.join(', '))
 
-async function button() {
+async function accept() {
   loading.value = true
 
-  if (game?.value.team_accepted === true) {
-    await client
-      .from('games')
-      .update({ state: 'Mission', vote_repeat: 0, leader_accepted: false, leader_proposed_team: false, team_accepted: null })
-      .eq('id', game.value.id)
+  await client
+    .from('games')
+    .update({ leader_accepted: false, leader_proposed_team: false, team_accepted: null, leader_closed_team_vote: false, state: 'Vote', round: game.value?.round + 1 })
+    .eq('id', game.value.id)
 
-    await client
-      .from('players')
-      .update({ vote: null, voted: false })
-      .eq('game', game.value.id)
-  }
-  else {
-    await client
-      .from('games')
-      .update({ leader_accepted: false, leader_proposed_team: false, team_accepted: null })
-      .eq('id', game.value.id)
+  await client
+    .from('players')
+    .update({ vote: null, voted: false, in_team: false })
+    .eq('game', game.value.id)
 
-    await client
-      .from('players')
-      .update({ vote: null, voted: false, in_team: false })
-      .eq('game', game.value.id)
-  }
+  // if (game?.value.team_accepted === true) {
+  //   await client
+  //     .from('games')
+  //     .update({ state: 'Mission', vote_repeat: 0, leader_accepted: false, leader_proposed_team: false, team_accepted: null })
+  //     .eq('id', game.value.id)
+
+  //   await client
+  //     .from('players')
+  //     .update({ vote: null, voted: false })
+  //     .eq('game', game.value.id)
+  // }
+  // else {
+
+  //   await client
+  //     .from('players')
+  //     .update({ vote: null, voted: false, in_team: false })
+  //     .eq('game', game.value.id)
+  // }
 }
 </script>
 
 <template>
   <div class="text-center w-screen max-w-72 px-4 py-20">
-    <h1 class="text-5xl mb-6" :class="{ 'text-red-500': !game?.team_accepted }">
-      Wahl {{ game?.team_accepted ? 'Erfolgreich' : 'Gescheitert' }}
+    <h1 class="text-5xl mb-6" :class="{ 'text-red-500': !game?.mission_history[game?.round - 1] }">
+      Mission {{ game?.mission_history[game?.round - 1] ? 'Erfolgreich' : 'Gescheitert' }}
     </h1>
     <div class="mb-8">
-      Das Team aus <span class="text-red-500">{{ teamString }}</span> wurde {{ game?.team_accepted ? 'angenommen' : 'abgelehnt' }}.
+      <p v-if="game?.mission_history[game?.round - 1] ">
+        Die Mission wurde von dem Team aus <span class="text-red-500">{{ teamString }}</span> erfolgreich durchgeführt!
+      </p>
+      <p v-else>
+        Die Mission ist gescheitert! Unter <span class="text-red-500">{{ teamString }}</span> {{ players?.filter(p => p.in_team && !p.vote).length > 1 ? 'befinden sich Spione!' : 'befindet sich mindestens ein Spion!' }}
+      </p>
     </div>
 
-    <ul class="grid grid-cols-2 mx-auto gap-4 w-full">
-      <li v-for="player in players" :key="player.id">
-        <div class="aspect-w-5 aspect-h-4">
+    <ul class="grid mx-auto gap-4 w-full">
+      <li v-for="player in players?.filter(p => p.in_team).sort((a, b) => +a.voted - +b.voted) " :key="player.id">
+        <div class="aspect-w-10 aspect-h-3">
           <div
             class="flex flex-col border-[0.15rem] border-amber-50 items-center justify-center"
             :class="{
               'border-red-500 text-red-500': !player.vote,
             }"
           >
-            <Icon class="mb-2" :name="player.vote ? `streamline:check-solid` : 'streamline:delete-1-solid'" size="2rem" />
-            {{ player.name }}
+            <Icon :name="player.vote ? `streamline:fist-solid` : 'streamline:visible-solid'" size="2rem" />
           </div>
         </div>
       </li>
@@ -84,8 +94,8 @@ async function button() {
           </svg>
         </div>
       </div>
-      <button v-else @click="button">
-        – {{ game?.team_accepted ? 'Mission starten' : 'Wahl wiederholen' }} –
+      <button v-else @click="accept">
+        – Akzeptieren –
       </button>
     </div>
   </div>

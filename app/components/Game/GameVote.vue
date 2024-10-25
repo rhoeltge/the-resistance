@@ -10,8 +10,6 @@ const client = useSupabaseClient()
 
 const leader = players.value.find(p => p.id === game.value.leader)
 
-const chosenPlayers = ref<number[]>([])
-
 async function voteTeam() {
   loading.value = true
 

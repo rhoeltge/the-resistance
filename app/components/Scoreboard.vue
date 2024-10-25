@@ -19,6 +19,9 @@ function endGame() {
   }
 }
 
+const resistanceWon = computed(() => game?.value.mission_history.filter(el => el).length >= 3)
+const spiesWon = computed(() => game?.value.mission_history.filter(el => !el).length >= 3 || game?.value?.vote_repeat >= 5)
+
 const client = useSupabaseClient()
 
 async function gameManager() {
@@ -39,6 +42,34 @@ async function gameManager() {
       .from('games')
       .update({ team_accepted: successful, vote_repeat: game.value.vote_repeat + (successful ? 0 : 1) })
       .eq('id', game.value.id)
+  }
+
+  if (game.value.state === 'Mission' && game.value.mission_history.length < game.value.round && players.value.filter(p => p.voted).length < players.value.length && !players.value.filter(p => p.in_team).map(el => el.voted).includes(false)) {
+    const successful = !(players.value.filter(p => p.in_team && p.vote === false).length >= ((game.value.round === 4 && players.value.length >= 7) ? 2 : 1))
+
+    await client
+      .from('games')
+      .update({ mission_history: [...game.value.mission_history, successful] })
+      .eq('id', game.value.id)
+  }
+
+  if (resistanceWon.value || spiesWon.value) {
+    await setTimeout(async () => {
+      window.alert('Das Spiel ist beendet.')
+
+      await client
+        .from('games')
+        .delete()
+        .eq('id', game.value.id)
+
+      localStorage.setItem('game_data', JSON.stringify({
+        userId: null,
+        gameId: null,
+        role: null,
+      }))
+
+      location.reload()
+    }, 250)
   }
 }
 
@@ -86,7 +117,7 @@ watch(players, gameManager)
       </h1>
       <div class="mb-20 flex gap-x-4">
         <div v-for="index in 5" :key="index" class="relative flex flex-col items">
-          <Icon v-if="game.state === 'Vote' && game.vote_repeat === index - 1 && game?.team_accepted !== true" class="absolute left-1/2 -translate-x-1/2 -translate-y-10 text-red-500" name="material-symbols:arrow-drop-down" size="2.5rem" />
+          <Icon v-if="(game.vote_repeat === index - 1 && game?.team_accepted === true) || (game.state === 'Vote' && game.vote_repeat === index - (game?.team_accepted === null ? 1 : 0) && game?.team_accepted !== true)" class="absolute left-1/2 -translate-x-1/2 -translate-y-10 text-red-500" name="material-symbols:arrow-drop-down" size="2.5rem" />
           <div v-if="game.vote_repeat === index - 1 && game?.team_accepted === true" class="flex items-center justify-center w-12 h-12 border-white bg-white border-[0.15rem] rounded-full">
             <Icon class="text-black" name="streamline:check-solid" size="1.2rem" />
           </div>

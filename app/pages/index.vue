@@ -133,7 +133,7 @@ async function startGame() {
     return random
   }
 
-  const spiesCount = players.value.length === 10 ? 4 : players.value.length >= 7 ? 3 : 2
+  const spiesCount = (players.value.length === 10) ? 4 : (players.value.length >= 7 ? 3 : 2)
   const spiesIndexes: number[] = []
   const spies: number[] = []
 
@@ -145,7 +145,7 @@ async function startGame() {
     spies.push(players.value[spyIndex]?.id)
   })
 
-  const leaderIndex = Math.floor(Math.random() * players.value.length) + 1
+  const leaderIndex = Math.floor(Math.random() * players.value.length)
 
   await client
     .from('players')
