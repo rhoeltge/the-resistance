@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 16px;
+
+    @screen xl {
+      font-size: 17px;
+    }
+
+    @screen 2xl {
+      font-size: 18px;
+    }
+
+    @apply bg-black
+  }
+
+  body {
+    @apply text-base font-sans font-bold;
+  }
+
+  h1, .h1 {
+    @apply font-bold text-6xl font-logo;
+  }
+
+  h2, .h2 {
+    @apply font-bold text-2xl;
+  }
+
+  h3, .h3 {
+    @apply font-bold text-xs uppercase tracking-[0.25em] text-red-500;
+  }
+
+  button {
+    @apply px-2 py-1.5 cursor-pointer hover:text-red-500 transition;
+  }
+
+  input {
+    @apply !bg-transparent !border-0 !text-amber-50 focus:!ring-0 !px-0 !pt-1.5 !pb-2 !border-b-[0.15rem] !border-amber-50;
+  }
+}
+
+@layer components {
+  .constrainer {
+    @apply w-full block mx-auto px-10 sm:px-0 sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl 2xl:max-w-screen-2xl;
+  }
+}
+
+@layer utilities {
+  .hyphens-auto {
+    hyphens: auto;
+  }
+
+  .hyphens-none {
+    hyphens: none;
+  }
+
+  .hyphens-manual {
+    hyphens: manual;
+  }
+}
