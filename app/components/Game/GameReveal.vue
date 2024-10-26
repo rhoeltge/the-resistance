@@ -20,8 +20,15 @@ function replaceLastComma(str: string) {
   return `${str.substring(0, lastCommaIndex)} und ${str.substring(lastCommaIndex + 2)}`
 }
 
-const spyNames = players.value.filter(player => player.role === 'Spion' && player.id !== currentPlayer.value.id).map(player => player.name)
-const spiesString = replaceLastComma(spyNames.join(', '))
+const spyNames = ref<string[]>([])
+const spiesString = ref('')
+
+onMounted(() => {
+  setTimeout(() => {
+    spyNames.value = players.value.filter(player => player.role === 'Spion' && player.id !== currentPlayer.value.id).map(player => player.name)
+    spiesString.value = replaceLastComma(spyNames.value.join(', '))
+  }, 100)
+})
 
 async function setReady() {
   await client
@@ -53,7 +60,7 @@ async function setReady() {
         <div v-if="page === 3">
           <div v-if="currentPlayer.role === 'Widerstandskämpfer'">
             <p class="mb-4">
-              Es gibt Gerüchte, dass sich <span class="text-red-500">{{ spyNames.length === 2 ? 'zwei' : spyNames.length === 3 ? 'drei' : 'vier' }} Spione</span> in unserer Gruppe befinden – bleibe wachsam und vertraue niemandem blind.
+              Es gibt Gerüchte, dass sich <span class="text-red-500">{{ players.filter(p => p.role === 'Spion').length === 2 ? 'zwei' : players.filter(p => p.role === 'Spion').length === 3 ? 'drei' : 'vier' }} Spione</span> in unserer Gruppe befinden – bleibe wachsam und vertraue niemandem blind.
             </p>
             <p>
               Arbeitet zusammen, um die Pläne der Feinde zu vereiteln und unsere Gemeinschaft zu schützen. Bleibe wachsam und vertraue deinen Instinkten – ein einziger Fehler könnte unsere Mission gefährden.
