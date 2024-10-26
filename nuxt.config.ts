@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   ],
 
   site: {
-    siteUrl: 'https://widerstand.ruwenhoeltge.de/',
+    url: 'https://widerstand.ruwenhoeltge.de/',
     name: 'Widerstand',
     description: 'Widerstand Kartenspiel',
     defaultLocale: 'de',

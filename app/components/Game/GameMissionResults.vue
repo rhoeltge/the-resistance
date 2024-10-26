@@ -71,7 +71,7 @@ async function accept() {
     </div>
 
     <ul class="grid mx-auto gap-4 w-full">
-      <li v-for="player in players?.filter(p => p.in_team).sort((a, b) => +a.voted - +b.voted) " :key="player.id">
+      <li v-for="player in players?.filter(p => p.in_team).sort((a, b) => +a.vote - +b.vote) " :key="player.id">
         <div class="aspect-w-10 aspect-h-3">
           <div
             class="flex flex-col border-[0.15rem] border-amber-50 items-center justify-center"
