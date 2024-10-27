@@ -5,9 +5,16 @@ import type { Game, Player } from '~/types/supabase'
 const { current: game } = storeToRefs(useGameStore())
 const { all: players } = storeToRefs(usePlayersStore())
 
-function endGame() {
-  if (window.confirm(`Möchtest du das Spiel abbrechen?`)) {
-    if (window.confirm(`Bist du dir sicher?`)) {
+const client = useSupabaseClient()
+
+async function endGame(confirm: boolean = true) {
+  if (!confirm || window.confirm(`Möchtest du das Spiel abbrechen?`)) {
+    if (!confirm || window.confirm(`Bist du dir sicher?`)) {
+      await client
+        .from('games')
+        .delete()
+        .eq('id', game.value.id)
+
       localStorage.setItem('game_data', JSON.stringify({
         userId: null,
         gameId: null,
@@ -21,8 +28,6 @@ function endGame() {
 
 const resistanceWon = computed(() => game?.value.mission_history.filter(el => el).length >= 3)
 const spiesWon = computed(() => game?.value.mission_history.filter(el => !el).length >= 3 || game?.value?.vote_repeat >= 5)
-
-const client = useSupabaseClient()
 
 async function gameManager() {
   if (!game.value || !players.value || !players.value.length)
@@ -57,18 +62,7 @@ async function gameManager() {
     await setTimeout(async () => {
       window.alert('Das Spiel ist beendet.')
 
-      await client
-        .from('games')
-        .delete()
-        .eq('id', game.value.id)
-
-      localStorage.setItem('game_data', JSON.stringify({
-        userId: null,
-        gameId: null,
-        role: null,
-      }))
-
-      location.reload()
+      endGame(false)
     }, 250)
   }
 }
